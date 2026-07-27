@@ -1,0 +1,25 @@
+
+# Playwright
+node_modules/
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+/playwright/.auth/
+
+# Allure (regenerated on every test run)
+allure-results/
+allure-report/
+allure-report.pdf
+
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Local scratch
+tmp-run.txt
+run-command.txt
+.playwright-mcp/
