@@ -1,111 +1,161 @@
 // spec: none
-// Updated login page object
+// Updated Login Page Object
+
 import { expect } from '@playwright/test';
 
 export class LoginPage {
   constructor(page) {
     this.page = page;
-    // Robust selectors: support both attribute-based and accessible-name based lookups
+
+    // Login page locators
     this.usernameInput = page.locator(
       "input[name='username'], input[autocomplete='username'], input[placeholder='Username']"
     ).first();
+
     this.passwordInput = page.locator(
       "input[name='password'], input[autocomplete='current-password'], input[type='password'], input[placeholder='Password']"
     ).first();
+
+    // Optional direct name-based locators
     this.usernameByName = page.locator("input[name='username']");
     this.passwordByName = page.locator("input[name='password']");
-    this.loginButton = page.getByRole('button', { name: /Log In|Login/i });
-    this.forgotPasswordSelector = 'text=/forgot your password\?/i';
-    this.errorMessage = page.locator('.oxd-alert .oxd-alert-content');
-    this.dashboardHeading = page.getByRole('heading', { name: 'Dashboard' });
-  }
 
-  async navigate() {
-    try {
-      await this.page.goto('/web/index.php/auth/login', {
-        waitUntil: 'commit',
-        timeout: 25000,
-      });
-    } catch (err) {
-      // Try a slightly different strategy if first navigation times out
-      try {
-        await this.page.goto('/web/index.php/auth/login', {
-          waitUntil: 'domcontentloaded',
-          timeout: 25000,
+    // OrangeHRM Login button
+    this.loginButton = page.getByRole('button',
+       {
+      name: 'Login',
         });
-      } catch (innerErr) {
-        // rethrow the original error to preserve context
-        throw err;
-      }
-    }
 
-    // Wait for the URL to contain '/auth/login' to ensure we are on the login page
-    await this.page.waitForURL('/web/index.php/auth/login', { timeout: 20000 });
+    // Forgot password
+    this.forgotPassword = page.getByText(
+      /forgot your password\?/i
+    ).first();
 
-    // Wait for the login button to be visible as a sign that the form is loaded
-    await this.loginButton.waitFor({ state: 'visible', timeout: 60000 });
+    // Error message
+    this.errorMessage = page.locator(
+      '.oxd-alert .oxd-alert-content'
+    );
 
-    // Now wait for the inputs
-    await this.usernameInput.waitFor({ state: 'visible', timeout: 60000 });
-    await this.passwordInput.waitFor({ state: 'visible', timeout: 60000 });
+    // Dashboard
+    this.dashboardHeading = page.getByRole('heading', {
+      name: 'Dashboard',
+    });
   }
 
+  /**
+   * Navigate to Login Page
+   */
+  async navigate() {
+    await this.page.goto('/web/index.php/auth/login', {
+      waitUntil: 'domcontentloaded',
+      timeout: 60000,
+    });
+
+    // Playwright automatically waits for these elements.
+    // No need for locator.waitFor() with 60-second timeout.
+    await expect(this.usernameInput).toBeVisible();
+    await expect(this.passwordInput).toBeVisible();
+    await expect(this.loginButton).toBeVisible();
+  }
+
+  /**
+   * Enter username
+   * @param {string} username
+   */
   async enterUsername(username) {
+    await expect(this.usernameInput).toBeVisible();
     await this.usernameInput.fill(username);
   }
 
+  /**
+   * Enter password
+   * @param {string} password
+   */
   async enterPassword(password) {
+    await expect(this.passwordInput).toBeVisible();
     await this.passwordInput.fill(password);
   }
 
-  async clickLogin({ expectedUrl = /dashboard/, timeout = 30000, waitForUrl = true } = {}) {
-    await this.loginButton.waitFor({ state: 'visible', timeout: 15000 });
-    await expect(this.loginButton).toBeEnabled({ timeout: 15000 });
-
-    await this.loginButton.click();
+  /**
+   * Click Login button
+   *
+   * @param {{
+   *   expectedUrl?: RegExp,
+   *   timeout?: number,
+   *   waitForUrl?: boolean
+   * }} options
+   */
+  async clickLogin({
+    expectedUrl = /dashboard/,
+    timeout = 30000,
+    waitForUrl = true,
+  } = {}) {
+    await expect(this.loginButton).toBeVisible();
+    await expect(this.loginButton).toBeEnabled();
 
     if (waitForUrl && expectedUrl) {
-      await this.page.waitForURL(expectedUrl, { timeout, waitUntil: 'commit' });
+      await Promise.all([
+        this.page.waitForURL(expectedUrl, {
+          timeout,
+          waitUntil: 'commit',
+        }),
+        this.loginButton.click(),
+      ]);
+    } else {
+      await this.loginButton.click();
     }
   }
 
+  /**
+   * Click Forgot Password
+   */
   async clickForgotPassword() {
-    const forgot = this.page.getByText(/forgot your password\?/i).first();
-    await forgot.waitFor({ state: 'visible', timeout: 20000 });
-    await forgot.click();
+    await expect(this.forgotPassword).toBeVisible();
+    await this.forgotPassword.click();
   }
 
+  /**
+   * Get login error message
+   *
+   * @returns {Promise<string>}
+   */
   async getErrorMessage() {
     const candidates = [
       this.page.getByRole('alert'),
       this.page.locator('.oxd-alert .oxd-alert-content'),
       this.page.locator('.oxd-input-field-error-message'),
-      this.page.locator('text=Required'),
-      this.page.locator('text=/required/i'),
+      this.page.getByText('Required'),
+      this.page.getByText(/required/i),
     ];
 
-    for (const loc of candidates) {
+    for (const locator of candidates) {
       try {
-        const first = loc.first();
-        await first.waitFor({ state: 'visible', timeout: 3000 });
-        const text = (await first.textContent())?.trim();
-        if (text) return text;
-      } catch (e) {
-        // ignore and try next candidate
-      }
-    }
+        const first = locator.first();
 
-    // Fallback: try to read any alert-like content without throwing
-    try {
-      const anyAlert = this.page.locator('.oxd-alert .oxd-alert-content').first();
-      if ((await anyAlert.count()) > 0) return (await anyAlert.textContent())?.trim() ?? '';
-    } catch {
-      // no-op
+        await expect(first).toBeVisible({
+          timeout: 3000,
+        });
+
+        const text = (
+          await first.textContent()
+        )?.trim();
+
+        if (text) {
+          return text;
+        }
+      } catch {
+        // Try next candidate
+      }
     }
 
     return '';
   }
 
+  /**
+   * Check if Dashboard is displayed
+   *
+   * @returns {Promise<boolean>}
+   */
   async isDashboardDisplayed() {
     return await this.dashboardHeading.isVisible();
   }

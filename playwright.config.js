@@ -9,16 +9,25 @@ import path from 'path';
  */
 const parseEnvFile = (filename) => {
   const filePath = path.resolve(__dirname, filename);
-  if (!fs.existsSync(filePath)) return {};
+
+  if (!fs.existsSync(filePath)) {
+    return {};
+  }
+
   try {
     const content = fs.readFileSync(filePath, 'utf8');
+
     return content
       .split(/\r?\n/)
       .map((line) => line.trim())
       .filter((line) => line && !line.startsWith('#'))
       .reduce((env, line) => {
         const [key, ...rest] = line.split('=');
-        env[key] = rest.join('=').trim();
+
+        if (key) {
+          env[key.trim()] = rest.join('=').trim();
+        }
+
         return env;
       }, /** @type {Record<string, string>} */ ({}));
   } catch {
@@ -26,17 +35,22 @@ const parseEnvFile = (filename) => {
   }
 };
 
-const uatenv = parseEnvFile('.env.uat');
-const prodenv = parseEnvFile('.env.prod');
+const uatEnv = parseEnvFile('.env.uat');
+const prodEnv = parseEnvFile('.env.prod');
 
-const rawUa = process.env.BASE_URL_UA ?? uatenv.BASE_URL;
-const rawProd = process.env.BASE_URL_PROD ?? prodenv.BASE_URL;
+const rawUa = process.env.BASE_URL_UA ?? uatEnv.BASE_URL;
+const rawProd = process.env.BASE_URL_PROD ?? prodEnv.BASE_URL;
+
 /**
  * @param {string|undefined} value
  * @param {string} fallback
  * @returns {string}
- */const normalizeBaseURL = (value, fallback) => {
-  if (!value) return fallback;
+ */
+const normalizeBaseURL = (value, fallback) => {
+  if (!value) {
+    return fallback;
+  }
+
   try {
     const url = new URL(value);
     return `${url.protocol}//${url.host}`;
@@ -45,50 +59,85 @@ const rawProd = process.env.BASE_URL_PROD ?? prodenv.BASE_URL;
   }
 };
 
-const UA_BASE = normalizeBaseURL(rawUa, 'https://uat-yourapplication.com');
-const PROD_BASE = normalizeBaseURL(rawProd, 'https://opensource-demo.orangehrmlive.com');
+const UA_BASE = normalizeBaseURL(
+  rawUa,
+  'https://uat-yourapplication.com'
+);
+
+const PROD_BASE = normalizeBaseURL(
+  rawProd,
+  'https://opensource-demo.orangehrmlive.com'
+);
+
+// CI/CD configuration
+const isCI = Boolean(process.env.CI);
+
+// Local: 0 retries
+// CI: 2 retries
+// Override with PLAYWRIGHT_RETRIES if required
+const retries = Number(
+  process.env.PLAYWRIGHT_RETRIES ?? (isCI ? 2 : 0)
+);
 
 export default defineConfig({
   testDir: './tests',
-  fullyParallel: true,
-  forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 1 : undefined,
-  reporter: [ ['allure-playwright'] ],
+
+  fullyParallel: false,
+
+  // Prevent test.only() from being committed to CI
+  forbidOnly: isCI,
+
+  // Retry failed tests
+  retries,
+
+  // Use one worker in CI; default workers locally
+  workers: isCI ? 1 : undefined,
+
+  reporter: [
+    ['allure-playwright'],
+    ['html', { open: 'never' }],
+  ],
+
   use: {
+    // Trace is collected only when a test is retried
     trace: 'on-first-retry',
+
+    // Capture screenshot only when a test fails
+    screenshot: 'only-on-failure',
+
+    // Keep video only for failed tests
+    video: 'retain-on-failure',
+
+    // Default timeout for Playwright actions
+    actionTimeout: 30000,
+
+    // Default timeout for page navigation
+    navigationTimeout: 60000,
   },
+
   projects: [
     {
       name: 'chromium',
       use: {
         ...devices['Desktop Chrome'],
         baseURL: PROD_BASE,
-        screenshot: 'on',
-        video: 'on',
-        trace: 'on',
       },
     },
+
     {
       name: 'ua-chromium',
       use: {
         ...devices['Desktop Chrome'],
         baseURL: UA_BASE,
-        screenshot: 'on',
-        video: 'on',
-        trace: 'on',
       },
     },
+
     {
       name: 'prod-chromium',
       use: {
         ...devices['Desktop Chrome'],
         baseURL: PROD_BASE,
-        screenshot: 'on',
-        video: 'on',
-        trace: 'on',
       },
     },
   ],
 });
-
