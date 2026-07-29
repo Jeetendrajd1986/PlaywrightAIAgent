@@ -46,16 +46,55 @@ export class LoginPage {
    * Navigate to Login Page
    */
   async navigate() {
-    await this.page.goto('/web/index.php/auth/login', {
-      waitUntil: 'domcontentloaded',
-      timeout: 60000,
-    });
+    const gotoOptions = {
+      waitUntil: 'load',
+      timeout: 120000,
+    };
 
-    // Playwright automatically waits for these elements.
-    // No need for locator.waitFor() with 60-second timeout.
-    await expect(this.usernameInput).toBeVisible();
-    await expect(this.passwordInput).toBeVisible();
-    await expect(this.loginButton).toBeVisible();
+    const maxAttempts = 3;
+    let lastError;
+
+    for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+      try {
+        await this.page.goto('/web/index.php/auth/login', gotoOptions);
+        lastError = undefined;
+        break;
+      } catch (error) {
+        lastError = error;
+
+        if (attempt >= maxAttempts || !this.isTransientNetworkError(error)) {
+          throw error;
+        }
+
+        // Wait briefly before retrying on transient network errors
+        await this.page.waitForTimeout(1500 * attempt);
+      }
+    }
+
+    if (lastError) {
+      throw lastError;
+    }
+
+    // The login form fields can be hidden behind an iframe or a slow loader.
+    // Wait briefly for the page DOM to settle before checking visibility.
+    await this.page.waitForLoadState('domcontentloaded', { timeout: 30000 });
+    await expect(this.usernameInput).toBeVisible({ timeout: 60000 });
+    await expect(this.passwordInput).toBeVisible({ timeout: 60000 });
+    await expect(this.loginButton).toBeVisible({ timeout: 60000 });
+  }
+
+  /**
+   * Detect transient network errors that are worth retrying.
+   *
+   * @param {unknown} error
+   * @returns {boolean}
+   */
+  isTransientNetworkError(error) {
+    if (!error) return false;
+    const message = String(error.message || error);
+    return /ERR_CONNECTION_RESET|ERR_CONNECTION_CLOSED|ERR_CONNECTION_TIMED_OUT|ERR_CONNECTION_REFUSED|ERR_NETWORK_CHANGED|ERR_INTERNET_DISCONNECTED|ERR_NAME_NOT_RESOLVED|ERR_EMPTY_RESPONSE|ERR_ABORTED|ERR_FAILED|navigation timeout|TimeoutError/i.test(
+      message
+    );
   }
 
   /**
@@ -121,6 +160,8 @@ export class LoginPage {
    */
   async getErrorMessage() {
     const candidates = [
+      this.page.locator('.oxd-alert-content-text'),
+      this.page.locator('.oxd-alert-content-text'),
       this.page.getByRole('alert'),
       this.page.locator('.oxd-alert .oxd-alert-content'),
       this.page.locator('.oxd-input-field-error-message'),

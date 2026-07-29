@@ -9,7 +9,6 @@ export async function seedLogin(page) {
   await loginPage.enterUsername(loginData.valid.username);
   await loginPage.enterPassword(loginData.valid.password);
 
-  await loginPage.loginButton.click();
-  await page.waitForURL(/dashboard/, { timeout: 60000, waitUntil: 'commit' });
+  await loginPage.clickLogin({ waitForUrl: true, timeout: 60000 });
   await expect(loginPage.dashboardHeading).toBeVisible({ timeout: 60000 });
 }

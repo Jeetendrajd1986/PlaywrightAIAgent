@@ -3,6 +3,7 @@ import { defineConfig, devices } from '@playwright/test';
 import fs from 'fs';
 import path from 'path';
 
+
 /**
  * @param {string} filename
  * @returns {Record<string, string>}
@@ -82,7 +83,7 @@ const retries = Number(
 export default defineConfig({
   testDir: './tests',
 
-  fullyParallel: false,
+  fullyParallel: true,
 
   // Prevent test.only() from being committed to CI
   forbidOnly: isCI,
@@ -90,8 +91,12 @@ export default defineConfig({
   // Retry failed tests
   retries,
 
+  // Run 4 tests in parallel
+  workers: 4,
+
+
   // Use one worker in CI; default workers locally
-  workers: isCI ? 1 : undefined,
+ // workers: isCI ? 1 : undefined,
 
   reporter: [
     ['allure-playwright'],
@@ -121,6 +126,10 @@ export default defineConfig({
       use: {
         ...devices['Desktop Chrome'],
         baseURL: PROD_BASE,
+        screenshot:"on",
+      video:"on",
+      trace:"on"
+      
       },
     },
 
@@ -129,6 +138,10 @@ export default defineConfig({
       use: {
         ...devices['Desktop Chrome'],
         baseURL: UA_BASE,
+        screenshot:"on",
+      video:"on",
+      trace:"on"
+      
       },
     },
 
@@ -136,7 +149,11 @@ export default defineConfig({
       name: 'prod-chromium',
       use: {
         ...devices['Desktop Chrome'],
-        baseURL: PROD_BASE,
+       baseURL: PROD_BASE,
+       screenshot:"on",
+       video: 'retain-on-failure',
+       trace: 'on-first-retry',
+      
       },
     },
   ],
