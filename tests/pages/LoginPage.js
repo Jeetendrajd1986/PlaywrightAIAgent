@@ -161,7 +161,7 @@ export class LoginPage {
   async getErrorMessage() {
     const candidates = [
       this.page.locator('.oxd-alert-content-text'),
-      this.page.locator('.oxd-alert-content-text'),
+     // this.page.locator('.oxd-alert-content-text'),
       this.page.getByRole('alert'),
       this.page.locator('.oxd-alert .oxd-alert-content'),
       this.page.locator('.oxd-input-field-error-message'),

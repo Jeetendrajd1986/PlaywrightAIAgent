@@ -92,11 +92,11 @@ export default defineConfig({
   retries,
 
   // Run 4 tests in parallel
-  workers: 4,
+ // workers: 4,
 
 
   // Use one worker in CI; default workers locally
- // workers: isCI ? 1 : undefined,
+    workers: isCI ? 1 : 4,
 
   reporter: [
     ['allure-playwright'],
@@ -156,5 +156,26 @@ export default defineConfig({
       
       },
     },
+
+   {
+      name: 'Mobile Safari (iPhone 14)',
+      use: { ...devices['iPhone 14'] },
+    },
+
+   {
+  name: 'Mobile Chrome (Pixel 7)',
+  use: {
+    ...devices['Pixel 7'],
+    // viewport: {
+//width: 412,
+   // height: 915
+  //},
+    screenshot: 'on',
+    video: 'retain-on-failure',
+    trace: 'on-first-retry',
+  },
+},
+
+
   ],
 });
