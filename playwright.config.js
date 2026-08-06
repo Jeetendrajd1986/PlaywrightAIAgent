@@ -126,9 +126,9 @@ export default defineConfig({
       use: {
         ...devices['Desktop Chrome'],
         baseURL: PROD_BASE,
-        screenshot:"on",
-      video:"on",
-      trace:"on"
+        screenshot:"on"
+      //video:"on",
+      //trace:"on"
       
       },
     },

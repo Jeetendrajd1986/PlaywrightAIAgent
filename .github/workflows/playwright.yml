@@ -16,6 +16,16 @@ jobs:
     timeout-minutes: 60
     runs-on: ubuntu-latest
 
+    strategy:
+      fail-fast: false
+      matrix:
+        project:
+          - chromium
+        #  - ua-chromium
+        #  - prod-chromium
+          - Mobile Chrome (Pixel 7)
+        #  - Mobile Safari (iPhone 14)
+
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -34,9 +44,9 @@ jobs:
       - name: Run Playwright Tests
         run: |
           npx playwright test tests/saucedemo/ \
-          --project="Mobile Chrome (Pixel 7)" \
-          --reporter=line,allure-playwright \
-          --retries=3
+            --project="${{ matrix.project }}" \
+            --reporter=line,allure-playwright \
+            --retries=3
 
       - name: Install Allure Commandline
         if: always()
@@ -51,7 +61,7 @@ jobs:
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: playwright-report
+          name: playwright-report-${{ matrix.project }}
           path: playwright-report/
           retention-days: 30
 
@@ -59,7 +69,7 @@ jobs:
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: allure-report
+          name: allure-report-${{ matrix.project }}
           path: allure-report/
           retention-days: 30
 
@@ -67,6 +77,6 @@ jobs:
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: allure-results
+          name: allure-results-${{ matrix.project }}
           path: allure-results/
           retention-days: 30
