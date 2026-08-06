@@ -101,6 +101,7 @@ export default defineConfig({
   reporter: [
     ['allure-playwright'],
     ['html'],
+    ['line']
   ],
 
   use: {
