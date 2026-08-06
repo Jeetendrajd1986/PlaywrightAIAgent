@@ -126,4 +126,6 @@ test.describe('Cart', () => {
     // 3. Verify cart badge always '2'
     await expect(page.locator('.shopping_cart_badge')).toHaveText('2');
   });
+
+  
 });
