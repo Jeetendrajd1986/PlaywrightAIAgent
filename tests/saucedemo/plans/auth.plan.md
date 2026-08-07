@@ -79,7 +79,7 @@ Login flow for Sauce Labs demo (https://www.saucedemo.com) on **Pixel 7 (Mobile 
   1. Log in successfully as standard_user / secret_sauce.
   2. Tap the Open Menu (hamburger) button.
   3. Tap the Logout link in the drawer.
-    - expect: User is redirected back to https://www.saucedemo.com/ and login form is shown.
+    - expect: User is redirected back to the https://www.saucedemo.com/ and login form should shown.
 
 #### 1.7 Login form lists accepted usernames and password
 
