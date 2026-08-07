@@ -11,7 +11,7 @@ Cart page tests for Sauce Labs demo (https://www.saucedemo.com) on **Pixel 7 (Mo
 
 ### 4. Cart
 
-**Seed:** `tests/seed.spec.ts`
+**Seed:** `tests/seed.spec.js`
 
 #### 4.1 Add multiple products to cart from inventory
 

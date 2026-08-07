@@ -1,5 +1,5 @@
 // spec: specs/saucedemo-mobile-pixel7.plan.md
-// seed: tests/seed.spec.ts
+// seed: tests/seed.spec.js
 
 const { test, expect } = require('@playwright/test');
 

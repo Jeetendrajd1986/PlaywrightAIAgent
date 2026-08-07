@@ -11,7 +11,7 @@ Inventory page tests for Sauce Labs demo (https://www.saucedemo.com) on **Pixel 
 
 ### 2. Inventory
 
-**Seed:** `tests/seed.spec.ts`
+**Seed:** `tests/seed.spec.js`
 
 #### 2.1 Inventory page default state after login
 

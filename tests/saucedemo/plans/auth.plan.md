@@ -11,7 +11,7 @@ Login flow for Sauce Labs demo (https://www.saucedemo.com) on **Pixel 7 (Mobile 
 
 ### 1. Authentication
 
-**Seed:** `tests/seed.spec.ts`
+**Seed:** `tests/seed.spec.js`
 
 #### 1.1 Login with valid credentials (happy path)
 

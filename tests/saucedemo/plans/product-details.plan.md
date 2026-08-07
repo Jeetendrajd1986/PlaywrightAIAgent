@@ -11,7 +11,7 @@ Product detail page tests for Sauce Labs demo (https://www.saucedemo.com) on **P
 
 ### 3. Product Details
 
-**Seed:** `tests/seed.spec.ts`
+**Seed:** `tests/seed.spec.js`
 
 #### 3.1 Open product detail by clicking title
 

@@ -95,7 +95,7 @@ export default defineConfig({
  // workers: 4,
 
 
-  // Use one worker in CI; default workers locally
+  //Worker Configuration  Use one worker in CI; default workers locally
     workers: isCI ? 1 : 4,
 
   reporter: [

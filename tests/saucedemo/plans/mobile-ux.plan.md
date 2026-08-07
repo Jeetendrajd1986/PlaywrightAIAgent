@@ -11,7 +11,7 @@ Mobile-specific UX checks for Sauce Labs demo (https://www.saucedemo.com) on **P
 
 ### 6. Mobile UX
 
-**Seed:** `tests/seed.spec.ts`
+**Seed:** `tests/seed.spec.js`
 
 _(Note: Mobile-UX scenarios were not generated as automated tests; they are documented here for manual verification and may be addressed via Playwright's accessibility audits in the future.)_
 

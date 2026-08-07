@@ -11,7 +11,7 @@ Checkout flow tests for Sauce Labs demo (https://www.saucedemo.com) on **Pixel 7
 
 ### 5. Checkout
 
-**Seed:** `tests/seed.spec.ts`
+**Seed:** `tests/seed.spec.js`
 
 #### 5.1 Checkout step one - valid information
 
